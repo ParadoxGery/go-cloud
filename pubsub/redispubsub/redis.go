@@ -111,7 +111,8 @@ type redisPub struct {
 
 func (p *redisPub) SendBatch(ctx context.Context, ms []*driver.Message) error {
 	for _, m := range ms {
-		c := p.c.Publish(p.topic, m.Body)
+		fmt.Println(m.Body)
+		c := p.c.Publish(p.topic, string(m.Body))
 		if c.Err() != nil {
 			return c.Err()
 		}
