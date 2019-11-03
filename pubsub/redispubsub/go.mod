@@ -17,8 +17,11 @@ module gocloud.dev/pubsub/redispubsub
 go 1.13
 
 require (
-	github.com/alicebob/miniredis v2.5.0+incompatible
+	github.com/alicebob/miniredis/v2 v2.10.1
+	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
+	github.com/gomodule/redigo v2.0.0+incompatible // indirect
+	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036 // indirect
 	gocloud.dev v0.17.0
 )
 

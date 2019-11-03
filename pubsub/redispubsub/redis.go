@@ -82,7 +82,7 @@ type URLOpener struct {
 // OpenTopicURL opens a pubsub.Topic based on u.
 func (o *URLOpener) OpenTopicURL(ctx context.Context, u *url.URL) (*pubsub.Topic, error) {
 	for p := range u.Query() {
-		return nil, fmt.Errorf("open topic '%v': invalid query parameter '%q'", u, p)
+		return nil, fmt.Errorf("open topic '%v': invalid query parameter %q", u, p)
 	}
 
 	topicName := path.Join(u.Host, u.Path)
@@ -92,7 +92,7 @@ func (o *URLOpener) OpenTopicURL(ctx context.Context, u *url.URL) (*pubsub.Topic
 // OpenSubscriptionURL opens pubsub.Subscription based on u.
 func (o *URLOpener) OpenSubscriptionURL(ctx context.Context, u *url.URL) (*pubsub.Subscription, error) {
 	for p := range u.Query() {
-		return nil, fmt.Errorf("open subscription '%v': invalid query parameter '%q'", u, p)
+		return nil, fmt.Errorf("open subscription '%v': invalid query parameter %q", u, p)
 	}
 
 	topicName := path.Join(u.Host, u.Path)
@@ -111,7 +111,6 @@ type redisPub struct {
 
 func (p *redisPub) SendBatch(ctx context.Context, ms []*driver.Message) error {
 	for _, m := range ms {
-		fmt.Println(m.Body)
 		c := p.c.Publish(p.topic, string(m.Body))
 		if c.Err() != nil {
 			return c.Err()
@@ -127,19 +126,25 @@ func (p *redisPub) IsRetryable(err error) bool {
 }
 
 func (p *redisPub) As(i interface{}) bool {
-	return false // TODO: should be implemented
+	client, ok := i.(**redis.Client)
+	if !ok {
+		return false
+	}
+
+	*client = p.c
+	return true
 }
 
 func (p *redisPub) ErrorAs(error, interface{}) bool {
-	return false // TODO: maybe can be implemented
+	return false
 }
 
 func (p *redisPub) ErrorCode(error) gcerrors.ErrorCode {
-	return gcerrors.Internal // TODO: this should be improved
+	return gcerrors.Internal
 }
 
 func (p *redisPub) Close() error {
-	return nil
+	return p.c.Close()
 }
 
 // OpenSub returns a redis subscriber.
@@ -173,15 +178,15 @@ func (s *redisSub) ReceiveBatch(ctx context.Context, maxMessages int) ([]*driver
 }
 
 func (s *redisSub) SendAcks(ctx context.Context, ackIDs []driver.AckID) error {
-	return nil // TODO: research if possible
+	return nil
 }
 
 func (s *redisSub) CanNack() bool {
-	return false // TODO: research
+	return false
 }
 
 func (s *redisSub) SendNacks(ctx context.Context, ackIDs []driver.AckID) error {
-	return nil // TODO: research
+	return nil
 }
 
 func (s *redisSub) IsRetryable(err error) bool {
@@ -190,17 +195,23 @@ func (s *redisSub) IsRetryable(err error) bool {
 }
 
 func (s *redisSub) As(i interface{}) bool {
-	return false // TODO: should be implemented
+	psub, ok := i.(**redis.PubSub)
+	if !ok {
+		return false
+	}
+
+	*psub = s.sub
+	return true
 }
 
 func (s *redisSub) ErrorAs(error, interface{}) bool {
-	return false // TODO: maybe can be implemented
+	return false
 }
 
 func (s *redisSub) ErrorCode(error) gcerrors.ErrorCode {
-	return gcerrors.Internal // TODO: this should be improved
+	return gcerrors.Internal
 }
 
 func (s *redisSub) Close() error {
-	return nil
+	return s.sub.Close()
 }
